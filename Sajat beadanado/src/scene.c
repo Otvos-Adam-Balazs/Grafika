@@ -4,12 +4,12 @@
 #include <obj/draw.h>
 #include <math.h>
 
-void init_scene(Scene* scene)
+void init_scene(Scene* scene,Camera* camera)
 {
     scene->rotation = 0.0;
     scene->key_roation = 0.0;
     scene->light = 0.0;
-    scene->movingKey = 0;
+    
 
     load_model(&(scene->Koenig), "assets/models/Koenigsegg.obj");
   
@@ -30,9 +30,10 @@ void init_scene(Scene* scene)
     load_model(&(scene->table), "assets/models/table.obj");
     scene->texture_table = load_texture("assets/textures/table_col.jpg");
 
+    load_model(&(scene->movingKey.MoveKey), "assets/models/key.obj");
 
+    scene->texture_help = load_texture("assets/textures/help.jpg");
 
-    //glBindTexture(GL_TEXTURE_2D, scene->texture_id);
 
     scene->material.ambient.red = 1;
     scene->material.ambient.green = 1;
@@ -133,11 +134,14 @@ void set_material2(const Material* mat_Koenig)
     glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, &(mat_Koenig->shininess));
 }
 
-void update_scene(Scene* scene, double elapsed_time)
+void update_scene(Scene* scene, Camera* camera,double elapsed_time)
 {
+    scene->movingKey.position.x = camera->position.x;
+    scene->movingKey.position.y = camera->position.y;
+   
+
     scene->rotation += 0.5 ;
     scene->key_roation += 3;
-
 }
 
 void render_scene(const Scene* scene)
@@ -152,6 +156,7 @@ void render_scene(const Scene* scene)
     draw_key(scene);
     draw_porsche(scene);
     draw_audi(scene);
+    draw_key_move(scene);
 }
 
 
@@ -225,6 +230,28 @@ void draw_key(const Scene* scene){
     glPopMatrix();
 }
 
+void draw_key_move(const Scene* scene){
+    float x,y;
+    x = scene->movingKey.position.x + 0.1;
+    y = scene->movingKey.position.y + 0.06; 
+    glBindTexture(GL_TEXTURE_2D, scene->texture_key);
+    glPushMatrix();
+    glTranslatef(x, y, 0.9);
+    glRotatef(90, 1, 0, 0);
+    glScalef(0.02, 0.02, 0.02);
+    draw_model(&(scene->movingKey));
+    glPopMatrix();
+}
+
+void Key_up(Scene* scene, int a, Camera* camera){
+    int c = a;
+    if(c == 1){
+        scene->movingKey.position.x = camera->position.x;
+        scene->movingKey.position.y = camera->position.y;
+        scene->movingKey.position.z = camera->position.z;
+    }
+}
+
 void set_sun_brightness_inc(Scene* scene, float b)
 {
    scene->light += b;
@@ -237,50 +264,34 @@ void set_sun_brightness_inc(Scene* scene, float b)
     }
 }
 
-/*void Movie_model(Scene* scene, Camera* camera){
+void show_help(GLuint help_texture) {
+    glDisable(GL_LIGHTING);
+    glDisable(GL_DEPTH_TEST);
+    glEnable(GL_COLOR_MATERIAL);
 
-    if(scene->movingKey == 0)
-	{
-		if(abs((int)(camera->position.x - scene->)) + abs((int)(camera->position.z - world->modelHuman1.position.z)) <
-				abs((int)(camera->position.x - world->modelHuman2.position.x)) + abs((int)(camera.position.z - world->modelHuman2.position.z)))
-		{
-			movingWhichmodelHuman = 1;
-		}
-		else {
-			movingWhichmodelHuman = 2;
-		}
-	}
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
 
-	if(abs(camera.position.x) < 170 && abs(camera.position.z) < 170)
-	{
-		switch (movingWhichmodelHuman) {
-			case 1:
-				if (abs((int)(camera.position.x - world->modelHuman1.position.x)) < 50 && abs((int)(camera.position.z - world->modelHuman1.position.z)) < 50 && camera.position.y < 150)
-				{
-					world->modelHuman1.position.x = camera.position.x + 10;
-					world->modelHuman1.position.z = camera.position.z + 10;
+    glColor3f(1, 1, 1);
+    glBindTexture(GL_TEXTURE_2D, help_texture);
 
-					world->modelHuman1.material_ambient[0] = camera.position.x / 200;
-					world->modelHuman1.material_ambient[1] = camera.position.y / 200;
-					world->modelHuman1.material_ambient[2] = camera.position.z / 200;
-				}
+    glBegin(GL_QUADS);
+        glTexCoord2f(0, 0);
+        glVertex3d(-2, 1.5, -3);
+        glTexCoord2f(1, 0);
+        glVertex3d(2, 1.5, -3);
+        glTexCoord2f(1, 1);
+        glVertex3d(2, -1.5, -3);
+        glTexCoord2f(0, 1);
+        glVertex3d(-2, -1.5, -3);
+    glEnd();
 
-				break;
-			case 2:
-				if (abs((int)(camera.position.x - world->modelHuman2.position.x)) < 50 && abs((int)(camera.position.z - world->modelHuman2.position.z)) < 50 && camera.position.y < 150)
-				{
-					world->modelHuman2.position.x = camera.position.x + 10;
-					world->modelHuman2.position.z = camera.position.z + 10;
 
-					world->modelHuman2.material_ambient[0] = camera.position.x / 200;
-					world->modelHuman2.material_ambient[1] = camera.position.y / 200;
-					world->modelHuman2.material_ambient[2] = camera.position.z / 200;
-				}
+    glDisable(GL_COLOR_MATERIAL);
+    glEnable(GL_LIGHTING);
+    glEnable(GL_DEPTH_TEST);
 
-				break;
-		}
-	}
-}*/
+}
 
 void draw_origin()
 {

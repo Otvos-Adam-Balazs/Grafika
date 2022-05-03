@@ -41,7 +41,7 @@ void init_app(App* app, int width, int height)
     reshape(width, height);
 
     init_camera(&(app->camera));
-    init_scene(&(app->scene));
+    init_scene(&(app->scene), &(app->camera));
 
     app->is_running = true;
 }
@@ -131,13 +131,9 @@ void handle_app_events(App* app)
             case SDL_SCANCODE_E:
                 set_sun_brightness_inc(&(app->scene), -20);
                 break;
-           /* case SDL_SCANCODE_F1:
-                 if (!app->scene.is_help_visible) {
-                            app->scene.is_help_visible = true;
-                    } else {
-                            app->scene.is_help_visible = false;
-                    }
-                break;*/
+            case SDL_SCANCODE_F:
+                 Key_up(&(app->scene), 1 , &(app->camera));
+                break;
             default:
                 break;
             }
@@ -152,6 +148,16 @@ void handle_app_events(App* app)
             case SDL_SCANCODE_D:
                 set_camera_side_speed(&(app->camera), 0);
                 break;
+           case SDL_SCANCODE_F:
+                Key_up(&(app->scene), 0, &(app->camera));
+                break;
+            case SDL_SCANCODE_F1:
+                 if (!app->scene.is_help_visible) {
+                            app->scene.is_help_visible = true;
+                    } else {
+                            app->scene.is_help_visible = false;
+                    }
+            break;
             default:
                 break;
             }
@@ -189,7 +195,7 @@ void update_app(App* app)
     app->uptime = current_time;
 
     update_camera(&(app->camera), elapsed_time);
-    update_scene(&(app->scene),  elapsed_time);
+    update_scene(&(app->scene),&(app->camera) ,  elapsed_time);
 }
 
 void render_app(App* app)
@@ -206,9 +212,9 @@ void render_app(App* app)
         show_texture_preview();
     }
 
-     //if (app->scene.is_help_visible) {
-       // show_help(app->scene.help);
-    //}
+     if (app->scene.is_help_visible) {
+       show_help(app->scene.texture_help);
+    }
 
     SDL_GL_SwapWindow(app->window);
 }
