@@ -1,1 +1,0 @@
-Az  A,W,S,D billentyűk lenyomásával lehet mozogni, és az E,Q pillentyűkkel lehet a fényerőt állítani.
